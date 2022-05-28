@@ -9,5 +9,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val repo: PrefRepository
     ):ViewModel() {
+        fun getStreak():Int{
+            return 0;
+        }
 
 }
