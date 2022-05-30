@@ -9,14 +9,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -28,9 +27,11 @@ import java.util.*
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainViewModel>()
     private val timerViewModel by viewModels<TimerViewModel>()
+    lateinit var navController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
+        viewModel.checkStreak()
         timerViewModel.breatheState.observe(this) {
             if (it != "") {
                 val v: Vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
@@ -42,18 +43,24 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        timerViewModel.timerState.observe(this){
+            if(it==TimerViewModel.TimerState.FINISHED){
+                viewModel.addToStreak()
+                navController.navigate("finish")
+            }
+        }
         setContent {
             MeditatoTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colors.background
                 ) {
-                    val navController = rememberNavController()
+                    navController = rememberNavController()
                     NavHost(navController, startDestination = "main") {
                         composable("main") { HomeScreen(navController, viewModel,timerViewModel) }
-                        composable("timer") { TimerScreen(timerViewModel,navController) }
-                        composable("finish"){ FinishScreen() }
+                        composable("timer") { TimerScreen(timerViewModel,viewModel,navController) }
+                        composable("finish"){ FinishScreen(navController) }
                     }
                 }
             }
@@ -63,8 +70,10 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         timerViewModel.cancelTimer()
+        navController.navigate("main")
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

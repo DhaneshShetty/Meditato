@@ -31,7 +31,7 @@ class TimerViewModel @Inject constructor():ViewModel() {
         countDownTimer?.cancel()
         var count=0
         _breatheState.value="Inhale"
-        countDownTimer=object:CountDownTimer(120000,1000){
+        countDownTimer=object:CountDownTimer(1200,1000){
             override fun onTick(p0: Long) {
                 _milliseconds.value=p0
                 if(count==checkInterval){

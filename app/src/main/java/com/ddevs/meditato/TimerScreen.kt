@@ -1,5 +1,6 @@
 package com.ddevs.meditato
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -8,7 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Text
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -26,20 +27,21 @@ import androidx.navigation.NavController
 import java.util.concurrent.TimeUnit
 
 @Composable
-fun TimerScreen(viewModel: TimerViewModel,navController: NavController){
+fun TimerScreen(viewModel: TimerViewModel,mainViewModel: MainViewModel,navController: NavController){
     val time=viewModel.milliseconds.observeAsState()
     val breathe = viewModel.breatheState.observeAsState("")
-    val timerState = viewModel.timerState.observeAsState()
-    if(timerState.value==TimerViewModel.TimerState.FINISHED)
-        navController.navigate("finish")
+    BackHandler(true) {
+        viewModel.cancelTimer()
+        navController.navigateUp()
+    }
     Column(
         Modifier
             .fillMaxSize()
             .background(colorResource(id = R.color.orange)), verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
-        BreatheText(breathe = breathe )
-        TimerView(time,navController,breathe)
+        BreatheText(breathe = breathe)
+        TimerView(time,breathe)
     }
 }
 
@@ -49,7 +51,7 @@ fun BreatheText(breathe: State<String>){
 }
 
 @Composable
-fun TimerView(time: State<Long?>,navController: NavController,breathe:State<String>){
+fun TimerView(time: State<Long?>,breathe:State<String>){
     val sizeAnimation: Dp by animateDpAsState(
         when(breathe.value){
             ""->50.dp
